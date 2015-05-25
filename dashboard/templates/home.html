@@ -1,0 +1,77 @@
+{% load staticfiles %}
+
+<html> 
+	<head>
+		<script type="text/javascript" src="https://ajax.microsoft.com/ajax/jQuery/jquery-1.4.2.min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/0.2.0/Chart.min.js" type="text/javascript"></script>
+		<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+		<script src="{% static "data_hospital/chart.min.js" %}"> </script>
+	</head>
+
+		<body>
+
+    
+        <!-- line chart canvas element -->
+        <h2> <center> Food tracked </center> </h2>
+        <center> <canvas id="food_track" width="1000" height="400">  </canvas> </center>
+    
+       		<script type="text/javascript">
+            // line chart data
+            var foodData = {
+                labels :  {{ labels }} ,
+                datasets : [
+                {
+                    fillColor : "rgba(172,194,132,0.4)",
+                    strokeColor : "#ACC26D",
+                    pointColor : "#fff",
+                    pointStrokeColor : "#9DB86D",
+                    data : {{ counts }},
+                }
+            ]
+            }
+            // get line chart canvas
+            var food_graph = document.getElementById('food_track').getContext('2d');
+            // draw line chart
+            new Chart(food_graph).Bar(foodData);
+            
+
+
+        
+
+			var sum = {{unfiltered_array}}.reduce(function(a, b) { return a + b; });
+			var avg = sum / {{unfiltered_array}}.length;
+
+			$(document).ready(function(){
+			    $("p").append(avg + " days");
+			});
+
+			var w = 800;
+			var h = 300; 
+			var barPadding = 1;		
+
+
+			var dataset = {{unfiltered_array}}; 
+			var svg = d3.select("body").append("svg").attr("width", w).attr("height", h); 
+
+			svg.selectAll("rect").data(dataset).enter().append("rect").attr("x", function(d, i) {
+				return i * (w / dataset.length); 
+			}).attr("y", function (d) {
+				return h - (d * 3); 
+			}).attr("width", w / dataset.length - barPadding).attr("fill", "pink").attr("height", function(d) {
+				return d * 5;
+			}); 
+
+			$(document).ready(function(){
+			    $(".hi").append(dict_data);
+			});
+		</script>
+
+		<p id="foodcount">
+			Average days food was tracked: 
+		</p>
+		<br>
+
+	</body>
+
+
+</html>
