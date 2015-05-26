@@ -3,9 +3,12 @@
 <html> 
 	<head>
 		<script type="text/javascript" src="https://ajax.microsoft.com/ajax/jQuery/jquery-1.4.2.min.js"></script>
-		<script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/0.2.0/Chart.min.js" type="text/javascript"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js" type="text/javascript"></script>
 		<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 		<script src="{% static "data_hospital/chart.min.js" %}"> </script>
+				<script src="{% static "data_hospital/nv.d3.min.js" %}"> </script>
+    <link rel="stylesheet" type="text/css" href="{% static "data_hospital/nv.d3.min.css" %}"> 
+
 	</head>
 
 		<body>
@@ -18,14 +21,14 @@
        		<script type="text/javascript">
             // line chart data
             var foodData = {
-                labels :  {{ labels }} ,
+                labels :  {{ food_labels }} ,
                 datasets : [
                 {
                     fillColor : "rgba(172,194,132,0.4)",
                     strokeColor : "#ACC26D",
                     pointColor : "#fff",
                     pointStrokeColor : "#9DB86D",
-                    data : {{ counts }},
+                    data : {{ food_counts }},
                 }
             ]
 
@@ -47,25 +50,25 @@
 			    $("p").append(avg + " days");
 			});
 
-			var w = 800;
-			var h = 300; 
-			var barPadding = 1;		
+			// var w = 800;
+			// var h = 300; 
+			// var barPadding = 1;		
 
 
-			var dataset = {{unfiltered_array}}; 
-			var svg = d3.select("body").append("svg").attr("width", w).attr("height", h); 
+			// var dataset = {{unfiltered_array}}; 
+			// var svg = d3.select("body").append("svg").attr("width", w).attr("height", h); 
 
-			svg.selectAll("rect").data(dataset).enter().append("rect").attr("x", function(d, i) {
-				return i * (w / dataset.length); 
-			}).attr("y", function (d) {
-				return h - (d * 3); 
-			}).attr("width", w / dataset.length - barPadding).attr("fill", "pink").attr("height", function(d) {
-				return d * 5;
-			}); 
+			// svg.selectAll("rect").data(dataset).enter().append("rect").attr("x", function(d, i) {
+			// 	return i * (w / dataset.length); 
+			// }).attr("y", function (d) {
+			// 	return h - (d * 3); 
+			// }).attr("width", w / dataset.length - barPadding).attr("fill", "pink").attr("height", function(d) {
+			// 	return d * 5;
+			// }); 
 
-			$(document).ready(function(){
-			    $(".hi").append(dict_data);
-			});
+			// $(document).ready(function(){
+			//     $(".hi").append(dict_data);
+			// });
 		</script>
 
 		<p id="foodcount">
@@ -73,7 +76,60 @@
 		</p>
 		<br>
 
+
+{{glucose_counts}}
+{{glucose_labels}}
+
+    <style>
+        text {
+            font: 12px sans-serif;
+        }
+        svg {
+            display: block;
+        }
+     
+    </style>
+</head>
+
+<h2> <center> Glucose tracked </center></h2>
+<div id="glucosechart" style="height: 530px;">
+    <svg></svg>
+</div>
+
+<script>
+
+    GlucoseBarChart = [
+        {
+           values: {{glucose|safe}}              
+        }
+    ];
+
+   
+
+    nv.addGraph(function() {
+        var chart = nv.models.discreteBarChart()
+            .x(function(d) { return d.label })
+            .y(function(d) { return d.value })
+            .staggerLabels(true)
+    
+            .tooltips(false)
+            .showValues(true)
+            .duration(250)
+        chart.width(1000).height(500)
+        chart.yAxis.axisLabel("Frequency").axisLabelDistance(-10)
+        chart.xAxis.axisLabel("Number of days")
+        d3.select('#glucosechart svg')
+            .datum(GlucoseBarChart)
+            .call(chart);
+        nv.utils.windowResize(chart.update);
+        return chart;
+    });
+</script>
+
+   Average days glucose tracked: {{avg_glu}} 
+
 	</body>
+
 
 
 </html>
