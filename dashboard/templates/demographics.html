@@ -1,0 +1,193 @@
+{% load staticfiles %}
+
+<html> 
+	<head>
+		<script type="text/javascript" src="https://ajax.microsoft.com/ajax/jQuery/jquery-1.4.2.min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js" type="text/javascript"></script>
+
+
+		<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+		<script src="{% static "data_hospital/chart.min.js" %}"> </script>
+        <!-- nvd3 libraries -->
+		<script src="{% static "data_hospital/nv.d3.min.js" %}"> </script>
+    <link rel="stylesheet" type="text/css" href="{% static "data_hospital/nv.d3.min.css" %}"> 
+    <link rel="stylesheet" type="text/css" href="{% static "data_hospital/demographics.css" %}"> 
+
+	</head>
+
+		<body>
+
+    
+        <!-- line chart canvas element -->
+        <h2> <center> Basic Demographic Breakdown </center> </h2>
+<div id="gender"> 
+        <h4> Gender distribution </h4>
+        <div id="total">
+        Total users: 
+        </div>
+        Males: {{males.num}}
+        <br>
+        Females: {{females.num}}
+
+        <!-- pie chart for gender breakdown -->
+        <div id="chart" style="height: 530px; width: 500px;">
+            <svg></svg>
+        </div>
+
+  </div>  
+<script>
+    var total = {{ females.num }} + {{ males.num }}; 
+    $(document).ready(function(){
+        $("#total").append(total);
+    });
+
+    var h = 300;
+    var r = h/2;
+    var arc = d3.svg.arc().outerRadius(r);
+
+    var data = [
+        {"label":"Female", "value":{{females.num}}}, 
+        {"label":"Male", "value":{{males.num}}}, 
+    ];
+
+    var colors = [
+        'rgb(239, 183, 182)', 
+        'rgb(0, 191, 255)'
+    ];
+
+
+    nv.addGraph(function() {
+        var chart = nv.models.pieChart()
+            .x(function(d) { return d.label })
+            .y(function(d) { return d.value })
+            .color(colors)
+            .showLabels(true)
+            .labelType("percent");
+    
+    d3.select("#chart svg")
+        .datum(data)
+        .call(chart);
+
+    d3.selectAll(".nv-label text")
+        /* Alter SVG attribute (not CSS attributes) */
+        .attr("transform", function(d){
+            d.innerRadius = -450;
+            d.outerRadius = r;
+            return "translate(" + arc.centroid(d) + ")";}
+        )
+        .attr("text-anchor", "middle")
+        /* Alter CSS attributes */
+        .style({"font-size": "1em"})
+    ;
+
+    
+    /* Replace bullets with blocks */
+    d3.selectAll('.nv-series').each(function(d,i) {
+        var group = d3.select(this),
+            circle = group.select('circle');
+        var color = circle.style('fill');
+        circle.remove();
+        var symbol = group.append('path')
+            .attr('d', d3.svg.symbol().type('square'))
+            .style('stroke', color)
+            .style('fill', color)
+            // ADJUST SIZE AND POSITION
+            .attr('transform', 'scale(1.5) translate(-2,0)')
+    });
+    d3.select(".nv-legendWrap")
+  .attr("transform", "translate(20,50)");
+
+        
+    return chart;
+});
+
+
+</script>
+
+<div id="BMI"> 
+<h4> BMI Breakdown</h4>
+<div id="bmichart" style="height: 530px;">
+    <svg></svg>
+</div>
+
+</div>
+
+<div id="age">
+<h4> Age Breakdown </h4>
+<div id="agechart"> 
+    <svg> </svg>
+</div>
+</div>
+
+<script>
+
+    BMIBarChart = [
+        {
+           values: [ 
+           {"label": "Under (< 18.5)", "value" : {{all.under_bmi | length}} }, 
+           {"label": "Normal (18.5-25)", "value": {{all.normal_bmi | length}} }, 
+           {"label" : "Over (25-30)", "value": {{all.over_bmi | length}} },
+           {"label" : "Obese (> 30)", "value": {{all.obese_bmi | length}} }
+           ]
+
+        }
+    ];
+
+   
+
+    nv.addGraph(function() {
+        var chart = nv.models.discreteBarChart()
+            .x(function(d) { return d.label })
+            .y(function(d) { return d.value })
+            .staggerLabels(true)
+            .tooltips(false)
+            .showValues(true)
+            .duration(250)
+        chart.width(500).height(500)
+        chart.yAxis.axisLabel("Frequency").axisLabelDistance(-10)
+
+        d3.select('#BMIchart svg')
+            .datum(BMIBarChart)
+            .call(chart);
+        nv.utils.windowResize(chart.update);
+        return chart;
+    });
+
+    // age bar chart
+     AgeBarChart = [
+        {
+           values: {{all.all_age|safe}}
+           
+
+        }
+    ];
+
+   
+
+    nv.addGraph(function() {
+        var chart = nv.models.discreteBarChart()
+            .x(function(d) { return d.label })
+            .y(function(d) { return d.value })
+            .staggerLabels(true)
+    
+            .tooltips(false)
+            
+            .duration(250)
+        chart.width(1300).height(500)
+        chart.yAxis.axisLabel("Frequency").axisLabelDistance(-10)
+        chart.xAxis.axisLabel("Age").axisLabelDistance(-3)
+
+        d3.select('#agechart svg')
+            .datum(AgeBarChart)
+            .call(chart);
+        nv.utils.windowResize(chart.update);
+        return chart;
+    });
+</script>
+
+
+	</body>
+
+
+
+</html>
