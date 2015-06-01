@@ -1,21 +1,21 @@
 {% load staticfiles %}
 
 <html> 
-	<head>
-		<script type="text/javascript" src="https://ajax.microsoft.com/ajax/jQuery/jquery-1.4.2.min.js"></script>
-		<script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js" type="text/javascript"></script>
+    <head>
+        <script type="text/javascript" src="https://ajax.microsoft.com/ajax/jQuery/jquery-1.4.2.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js" type="text/javascript"></script>
 
 
-		<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-		<script src="{% static "data_hospital/chart.min.js" %}"> </script>
+        <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+        <script src="{% static "data_hospital/chart.min.js" %}"> </script>
         <!-- nvd3 libraries -->
-		<script src="{% static "data_hospital/nv.d3.min.js" %}"> </script>
+        <script src="{% static "data_hospital/nv.d3.min.js" %}"> </script>
     <link rel="stylesheet" type="text/css" href="{% static "data_hospital/nv.d3.min.css" %}"> 
-    <link rel="stylesheet" type="text/css" href="{% static "data_hospital/demographics.css" %}"> 
+   <link rel="stylesheet" type="text/css" href="{% static "data_hospital/demographics.css" %}"> 
 
-	</head>
+    </head>
 
-		<body>
+        <body>
 
     
         <!-- line chart canvas element -->
@@ -109,9 +109,21 @@
 <div id="bmichart" style="height: 530px;">
     <svg></svg>
 </div>
-
+Average BMI: {{all.avg_bmi}}
+<br>
+Average female BMI: {{females.avg_bmi}}
+<br>
+Average male BMI: {{males.avg_bmi}}
 </div>
 
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
 <div id="age">
 <h4> Age Breakdown </h4>
 <div id="agechart"> 
@@ -122,7 +134,10 @@
 <script>
 
     BMIBarChart = [
-        {
+        {   
+            // all
+           key: "All",
+           color: "#51A351",
            values: [ 
            {"label": "Under (< 18.5)", "value" : {{all.under_bmi | length}} }, 
            {"label": "Normal (18.5-25)", "value": {{all.normal_bmi | length}} }, 
@@ -130,28 +145,53 @@
            {"label" : "Obese (> 30)", "value": {{all.obese_bmi | length}} }
            ]
 
-        }
+        }, 
+        {
+         key: "Males",
+           color: "#1e90ff",
+           values: [ 
+           {"label": "Under (< 18.5)", "value" : {{males.bmi.under | length}} }, 
+           {"label": "Normal (18.5-25)", "value": {{males.bmi.normal | length}} }, 
+           {"label" : "Over (25-30)", "value": {{ males.bmi.over | length}} },
+           {"label" : "Obese (> 30)", "value": {{ males.bmi.obese | length}} }
+           ]
+       }, 
+        {
+         key: "Females",
+           color: "#ffe4e1",
+           values: [ 
+           {"label": "Under (< 18.5)", "value" : {{females.bmi.under | length}} }, 
+           {"label": "Normal (18.5-25)", "value": {{females.bmi.normal | length}} }, 
+           {"label" : "Over (25-30)", "value": {{ females.bmi.over | length}} },
+           {"label" : "Obese (> 30)", "value": {{ females.bmi.obese | length}} }
+           ]
+       }
     ];
 
    
 
     nv.addGraph(function() {
-        var chart = nv.models.discreteBarChart()
-            .x(function(d) { return d.label })
-            .y(function(d) { return d.value })
-            .staggerLabels(true)
-            .tooltips(false)
-            .showValues(true)
-            .duration(250)
-        chart.width(500).height(500)
-        chart.yAxis.axisLabel("Frequency").axisLabelDistance(-10)
+    var chart = nv.models.multiBarChart();
 
-        d3.select('#BMIchart svg')
-            .datum(BMIBarChart)
-            .call(chart);
-        nv.utils.windowResize(chart.update);
-        return chart;
-    });
+    chart.x(function(d) { return d.label; });
+    chart.y(function(d) { return d.value; });
+    chart.showControls(false); // don't show controls
+
+    chart.yAxis.axisLabel("# of Patients").axisLabelDistance(-10)
+    
+
+
+
+    d3.select('#bmichart svg')
+        .datum(BMIBarChart)
+        .transition().duration(500)
+        .call(chart)
+        ;
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+});
 
     // age bar chart
      AgeBarChart = [
@@ -174,7 +214,7 @@
             
             .duration(250)
         chart.width(1300).height(500)
-        chart.yAxis.axisLabel("Frequency").axisLabelDistance(-10)
+        chart.yAxis.axisLabel("# of Patients").axisLabelDistance(-10)
         chart.xAxis.axisLabel("Age").axisLabelDistance(-3)
 
         d3.select('#agechart svg')
@@ -184,10 +224,51 @@
         return chart;
     });
 </script>
+<div id="age_stats">
+Average age: {{ all.avg_age}} years old
+<br>
+Average male age: {{ males.avg_age }} years old
+<br>
+Average female age: {{ females.avg_age }} years old
+</div>
+ 
+ <br>
+ <br>
+ <br>
+
+<h3> By different regions </h3> 
+<div id="keys"> 
+ List of regions: 
+
+{% for d in key_list %}
+    {% if forloop.last %}
+        {{ d }}
+    {% else %}
+        {{ d }},  
+    {% endif %}
+{% endfor %}
+<br>
+<br>
+<br>
 
 
-	</body>
+{%for key, value in regiondoctorstm.items %}
+<div> {{key}} : {% for item in value %}
+        {% if forloop.last %}
+          {{item}}
+          {% else %}
+          {{item}},
 
+          {% endif %}  {%endfor%}</div>
+        
+        
+        
+
+{% endfor %}
+
+
+
+    </body>
 
 
 </html>
